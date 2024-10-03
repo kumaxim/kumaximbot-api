@@ -1,0 +1,20 @@
+openapi: 3.0.0
+info:
+  title: Telegramm bot - kumaximbot
+  version: 1.0.0
+servers:
+- url: https://example.net
+paths:
+  /{url+}:
+    x-yc-apigateway-any-method:
+      parameters:
+        - explode: false
+          in: path
+          name: url
+          required: false
+          style: simple
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        service_account_id: ${service_account_id}
+        payload_format_version: '1.0'

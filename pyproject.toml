@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "kumaximbot-api"
+version = "0.1.0"
+description = ""
+authors = ["Kudryavtsev Maxim <kumaxim@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.32"}
+aiogram = "^3.13.1"
+fastapi = "^0.115.0"
+aiosqlite = "^0.20.0"
+pydantic-settings = "^2.4.0"
+sulguk = "^0.8.0"
+mangum = "^0.19.0"
+
+
+[tool.poetry.group.dev.dependencies]
+alembic = "^1.13.2"
+aiogram-cli = "^1.1.0"
+fastapi-cli = "^0.0.5"
+python-lambda-local = "^0.1.13"
+setuptools = "^75.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
