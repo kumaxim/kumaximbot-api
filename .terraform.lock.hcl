@@ -8,6 +8,13 @@ provider "registry.terraform.io/hashicorp/archive" {
   ]
 }
 
+provider "registry.terraform.io/hashicorp/http" {
+  version = "3.4.5"
+  hashes = [
+    "h1:ceAVZEuaQd7jQX13qf5w7hy3ioiXpuwUaaDRsnAiMLM=",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/null" {
   version = "3.2.3"
   hashes = [

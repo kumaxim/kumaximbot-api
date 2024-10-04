@@ -65,12 +65,28 @@ data "archive_file" "dist" {
 }
 
 resource "null_resource" "requirements" {
+  triggers = {
+    requirements = filesha512("${path.module}/poetry.lock")
+  }
+
   provisioner "local-exec" {
     command = "poetry export -o requirements.txt --without-hashes --without=dev"
   }
+}
 
+resource "null_resource" "migrations" {
   triggers = {
-    requirements = filesha256("${path.module}/poetry.lock")
+    sha512sum = sha512(
+      trimspace(
+        join("", [
+          for table in fileset(path.module, "migrations/**/*.py") : file("${path.module}/${table}")
+        ])
+      )
+    )
+  }
+
+  provisioner "local-exec" {
+    command = "[ -f ${path.module}/assets/${local.sqlite_filename} ] && poetry run alembic upgrade head || poetry run alembic init && poetry run alembic upgrade head"
   }
 }
 
@@ -91,6 +107,7 @@ resource "yandex_storage_object" "sqlite" {
   bucket     = yandex_storage_bucket.s3.bucket
   key        = local.sqlite_filename
   source     = "${path.module}/assets/${local.sqlite_filename}"
+  depends_on = [null_resource.migrations]
 }
 
 resource "yandex_api_gateway" "gw" {
@@ -103,7 +120,7 @@ resource "yandex_api_gateway" "gw" {
 
 resource "yandex_function" "handler" {
   name               = local.project_slug
-  user_hash          = data.archive_file.dist.output_sha
+  user_hash          = data.archive_file.dist.output_sha512
   runtime            = "python312"
   entrypoint         = "app.main.handler"
   memory             = "256"
