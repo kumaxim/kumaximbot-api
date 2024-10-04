@@ -48,6 +48,14 @@ output "domain" {
   value = yandex_api_gateway.gw.domain
 }
 
+data "http" "setup-tg-webhook" {
+  url = "${yandex_api_gateway.gw.domain}/set-webhook"
+  request_headers = {
+    Content-Type : "application/json"
+  }
+  depends_on = [yandex_function.handler]
+}
+
 data "archive_file" "dist" {
   type        = "zip"
   source_dir  = path.module
