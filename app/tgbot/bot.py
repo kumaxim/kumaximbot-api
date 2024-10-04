@@ -47,3 +47,23 @@ async def on_startup():
         BotCommand(command='resume', description='Скачать резюме'),
         BotCommand(command='contacts', description='Связаться со мной')
     ])
+
+
+async def local_runner():
+    """
+    Start the bot in long polling mode for local development.
+
+    If bot's webhook is set, it will be destroyed before starting polling.
+    """
+    info = await bot.get_webhook_info()
+
+    if info.url:
+        await bot.delete_webhook(drop_pending_updates=True)
+
+    dp.startup.register(on_startup)
+    await dp.start_polling(bot)
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, stream=sys_stdout)
+    async_run(local_runner())
