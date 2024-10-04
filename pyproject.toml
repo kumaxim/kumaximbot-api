@@ -1,5 +1,6 @@
 [tool.poetry]
 name = "kumaximbot-api"
+package-mode = false
 version = "0.1.0"
 description = ""
 authors = ["Kudryavtsev Maxim <kumaxim@users.noreply.github.com>"]
@@ -20,8 +21,6 @@ mangum = "^0.19.0"
 alembic = "^1.13.2"
 aiogram-cli = "^1.1.0"
 fastapi-cli = "^0.0.5"
-python-lambda-local = "^0.1.13"
-setuptools = "^75.1.0"
 
 [build-system]
 requires = ["poetry-core"]
