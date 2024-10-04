@@ -1,25 +1,39 @@
-from aiogram import Bot, Dispatcher
-from aiogram.types import BotCommand, Update, Message
-from aiogram.client.default import DefaultBotProperties
+import logging
+from sys import stdout as sys_stdout
+from asyncio import run as async_run
+from contextlib import asynccontextmanager
+from typing import Callable, Awaitable, Dict, Any
 
+from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand, Update
+from aiogram.client.default import DefaultBotProperties
 from sulguk import AiogramSulgukMiddleware, SULGUK_PARSE_MODE
 
 from app.config import config
-from app.db import database
+from app.db.database import session_factory
 from .commands import router
-from .middleware import DatabaseSessionMiddleware
 
 
 bot = Bot(token=config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=SULGUK_PARSE_MODE))
 dp = Dispatcher()
 
 
-async def startup():
+async def setup_database_session(
+        handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
+        event: Update,
+        data: Dict[str, Any]
+):
+    database_session = asynccontextmanager(session_factory)
+
+    async with database_session() as session:
+        data['db'] = session
+
+        return await handler(event, data)
+
+
+async def on_startup():
     bot.session.middleware(AiogramSulgukMiddleware())
-
-    session = database.session_factory()
-
-    dp.update.middleware(DatabaseSessionMiddleware(await anext(session)))
+    dp.update.outer_middleware(setup_database_session)
     dp.include_router(router)
 
     await bot.set_my_commands([

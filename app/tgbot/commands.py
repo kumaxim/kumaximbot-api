@@ -11,7 +11,7 @@ router = Router()
 
 
 @router.message(CommandStart())
-async def send_welcome(message: Message) -> None:
+async def send_welcome(message: Message, db: AsyncSession) -> None:
     # Telegram бот часовым поиском всех сообщений выставляет UTC. Поскольку, моим ботом будут пользоваться
     # преимущественно люди из МСК, к текущему часу добавлю +3, для того чтобы приветственное сообщение более
     # соответствовало реальному времени суток пользователя
@@ -24,49 +24,46 @@ async def send_welcome(message: Message) -> None:
     elif 18 <= (message.date.hour + 3) < 23:
         greeting = f'Добрый вечер'
 
-    introduce = (f'Приятно познакомиться!. Меня зовут ***REMOVED*** ***REMOVED***. Я Senior Python Developer.'
-                 f' Данный бот - это более полная версия моего резюме с hh.ru на одноименную позицию.'
-                 f' В него я вынес все, что не поместилось там и представил в более удобном формате.'
-                 f' Далее, выберите пункт, который Вас интересует.')
+    introduce = await PostRepository(db).get_by_command_name('start')
 
-    text = f'{greeting}, {html.quote(message.from_user.full_name)}. \n\n{introduce}'
+    text = f'{greeting}, {html.quote(message.from_user.full_name)}. \n\n{introduce.text}'
 
     await message.answer(text)
 
 
 @router.message(Command('about'))
-async def handler_about(message: Message, session: AsyncSession) -> None:
-    about = await PostRepository(session).get_by_command_name('about')
+async def handler_about(message: Message, db: AsyncSession) -> None:
+    about = await PostRepository(db).get_by_command_name('about')
     await message.answer(text=about.text if about else '[about]: Handler not found')
 
 
 @router.message(Command('skills'))
-async def handler_skills(message: Message, session: AsyncSession) -> None:
-    skills = await PostRepository(session).get_by_command_name('skills')
+async def handler_skills(message: Message, db: AsyncSession) -> None:
+    skills = await PostRepository(db).get_by_command_name('skills')
     await message.answer(text=skills.text if skills is not None else '[skills]: Handler not found')
 
 
 @router.message(Command('experience'))
-async def handler_experience(message: Message, session: AsyncSession) -> None:
-    experience = await PostRepository(session).get_by_command_name('experience')
+async def handler_experience(message: Message, db: AsyncSession) -> None:
+    experience = await PostRepository(db).get_by_command_name('experience')
     await message.answer(text=experience.text if experience else '[experience]: Handler not found')
 
 
 @router.message(Command('projects'))
-async def handler_projects(message: Message, session: AsyncSession) -> None:
-    projects = await PostRepository(session).get_by_command_name('projects')
+async def handler_projects(message: Message, db: AsyncSession) -> None:
+    projects = await PostRepository(db).get_by_command_name('projects')
     await message.answer(text=projects.text if projects else '[projects]: Handler not found')
 
 
 @router.message(Command('education'))
-async def handler_education(message: Message, session: AsyncSession) -> None:
-    education = await PostRepository(session).get_by_command_name('education')
+async def handler_education(message: Message, db: AsyncSession) -> None:
+    education = await PostRepository(db).get_by_command_name('education')
     await message.answer(text=education.text if education else '[education]: Handler not found')
 
 
 @router.message(Command('expectations'))
-async def handler_expectations(message: Message, session: AsyncSession) -> None:
-    expectations = await PostRepository(session).get_by_command_name('expectations')
+async def handler_expectations(message: Message, db: AsyncSession) -> None:
+    expectations = await PostRepository(db).get_by_command_name('expectations')
     await message.answer(text=expectations.text if expectations else '[expectations]: Handler not found')
 
 
@@ -135,9 +132,9 @@ async def handler_contact_telegram(callback: CallbackQuery) -> None:
 
 
 @router.message()
-async def echo(message: Message, session: AsyncSession) -> None:
+async def echo(message: Message, db: AsyncSession) -> None:
     try:
-        default = await PostRepository(session).get_by_command_name('default')
+        default = await PostRepository(db).get_by_command_name('default')
         await message.answer(text=default.text if default else '[default]: Handler not found')
     except TypeError:
         await message.answer('Nice try!')

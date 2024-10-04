@@ -11,7 +11,7 @@ from mangum import Mangum
 
 from .config import config
 from .api.routers import posts, default
-from .tgbot.bot import startup, dp as dispatcher, bot as current_bot
+from .tgbot.bot import on_startup, dp as dispatcher, bot as current_bot
 
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -19,7 +19,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await startup()
+    await on_startup()
 
     yield
 
