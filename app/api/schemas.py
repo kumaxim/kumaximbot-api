@@ -1,15 +1,19 @@
+from typing import Optional
 from pydantic import BaseModel
-from typing import Annotated, Any, Optional, Dict
 
 
 class Post(BaseModel):
     id: int
     command: str
+    callback_query: Optional[str] = None
+    title: str
     text: str
 
 
 class CreatePost(BaseModel):
     command: str
+    callback_query: Optional[str] = None
+    title: str
     text: str
 
 

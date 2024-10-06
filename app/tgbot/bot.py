@@ -11,6 +11,7 @@ from sulguk import AiogramSulgukMiddleware, SULGUK_PARSE_MODE
 
 from app.config import config
 from app.db.database import session_factory
+from app.db.repositories import PostRepository
 from .commands import router
 
 
@@ -36,17 +37,26 @@ async def on_startup():
     dp.update.outer_middleware(setup_database_session)
     dp.include_router(router)
 
-    await bot.set_my_commands([
-        BotCommand(command='about', description='Обо мне'),
-        BotCommand(command='skills', description='Навыки'),
-        BotCommand(command='experience', description='Опыт работы'),
-        BotCommand(command='projects', description='Реализованные проекты'),
-        BotCommand(command='education', description='Образование'),
-        BotCommand(command='expectations', description='Ожидания от работодателя'),
-        BotCommand(command='schedule', description='Назначить интервью'),
-        BotCommand(command='resume', description='Скачать резюме'),
-        BotCommand(command='contacts', description='Связаться со мной')
-    ])
+    session_manager = asynccontextmanager(session_factory)
+
+    async with session_manager() as session:
+        posts = await PostRepository(session).get_all()
+
+        await bot.set_my_commands([
+            BotCommand(command=post.command, description=post.title) for post in posts if post.command != 'start'
+        ])
+
+    # await bot.set_my_commands([
+    #     BotCommand(command='about', description='Обо мне'),
+    #     BotCommand(command='skills', description='Навыки'),
+    #     BotCommand(command='experience', description='Опыт работы'),
+    #     BotCommand(command='projects', description='Реализованные проекты'),
+    #     BotCommand(command='education', description='Образование'),
+    #     BotCommand(command='expectations', description='Ожидания от работодателя'),
+    #     BotCommand(command='schedule', description='Назначить интервью'),
+    #     BotCommand(command='resume', description='Скачать резюме'),
+    #     BotCommand(command='contacts', description='Связаться со мной')
+    # ])
 
 
 async def local_runner():

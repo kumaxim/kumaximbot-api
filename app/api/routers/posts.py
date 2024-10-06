@@ -34,7 +34,9 @@ async def get_post(post_id: int, session: DatabaseSession) -> Post:
 @router.post("/", operation_id='createPost', responses={409: {}})
 async def create_post(post: CreatePost, session: DatabaseSession) -> Post:
     try:
-        return await PostRepository(session).create(PostModel(text=post.text, command=post.command))
+        return await PostRepository(session).create(
+            PostModel(text=post.text, title=post.title, command=post.command, callback_query=post.callback_query)
+        )
     except IntegrityError:
         raise HTTPException(status_code=409, detail=f"Post with command '{post.command}' already exists")
     except Exception as e:
@@ -44,7 +46,7 @@ async def create_post(post: CreatePost, session: DatabaseSession) -> Post:
 @router.put("/{post_id}", operation_id='replacePost')
 async def update_post(post_id: int, post: UpdatePost, session: DatabaseSession) -> Post:
     return await PostRepository(session).update(
-        PostModel(id=post_id, text=post.text, command=post.command)
+        PostModel(id=post_id, title=post.title, text=post.text, command=post.command, callback_query=post.callback_query)
     )
 
 

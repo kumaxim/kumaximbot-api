@@ -1,17 +1,31 @@
 from os import path
 from aiogram import Router, html, F
 from aiogram.filters import CommandStart, Command
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
-from aiogram.types import (Message, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup,
-                           ReplyKeyboardRemove, FSInputFile, CallbackQuery)
-
+from aiogram.types import (
+    Message,
+    KeyboardButton,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    FSInputFile,
+    CallbackQuery)
 from app.db.repositories import PostRepository
+
 
 router = Router()
 
 
+class MenuNavigate(StatesGroup):
+    command = State()
+
+
 @router.message(CommandStart())
-async def send_welcome(message: Message, db: AsyncSession) -> None:
+async def send_welcome(message: Message, state: FSMContext, db: AsyncSession) -> None:
     # Telegram бот часовым поиском всех сообщений выставляет UTC. Поскольку, моим ботом будут пользоваться
     # преимущественно люди из МСК, к текущему часу добавлю +3, для того чтобы приветственное сообщение более
     # соответствовало реальному времени суток пользователя
@@ -28,43 +42,8 @@ async def send_welcome(message: Message, db: AsyncSession) -> None:
 
     text = f'{greeting}, {html.quote(message.from_user.full_name)}. \n\n{introduce.text}'
 
+    await state.clear()
     await message.answer(text)
-
-
-@router.message(Command('about'))
-async def handler_about(message: Message, db: AsyncSession) -> None:
-    about = await PostRepository(db).get_by_command_name('about')
-    await message.answer(text=about.text if about else '[about]: Handler not found')
-
-
-@router.message(Command('skills'))
-async def handler_skills(message: Message, db: AsyncSession) -> None:
-    skills = await PostRepository(db).get_by_command_name('skills')
-    await message.answer(text=skills.text if skills is not None else '[skills]: Handler not found')
-
-
-@router.message(Command('experience'))
-async def handler_experience(message: Message, db: AsyncSession) -> None:
-    experience = await PostRepository(db).get_by_command_name('experience')
-    await message.answer(text=experience.text if experience else '[experience]: Handler not found')
-
-
-@router.message(Command('projects'))
-async def handler_projects(message: Message, db: AsyncSession) -> None:
-    projects = await PostRepository(db).get_by_command_name('projects')
-    await message.answer(text=projects.text if projects else '[projects]: Handler not found')
-
-
-@router.message(Command('education'))
-async def handler_education(message: Message, db: AsyncSession) -> None:
-    education = await PostRepository(db).get_by_command_name('education')
-    await message.answer(text=education.text if education else '[education]: Handler not found')
-
-
-@router.message(Command('expectations'))
-async def handler_expectations(message: Message, db: AsyncSession) -> None:
-    expectations = await PostRepository(db).get_by_command_name('expectations')
-    await message.answer(text=expectations.text if expectations else '[expectations]: Handler not found')
 
 
 @router.message(Command('resume'))
@@ -131,10 +110,61 @@ async def handler_contact_telegram(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.callback_query()
+async def callback_handler(callback: CallbackQuery, state: FSMContext, db: AsyncSession) -> None:
+    await callback.message.edit_reply_markup(reply_markup=None)
+
+    command, _, query = callback.data.partition(':')
+
+    posts = await PostRepository(db).filter_by(command=command, callback_query=query)
+    await state.update_data(command=command, query=query)
+
+    if len(posts) == 0:
+        await callback.message.answer(f'[{callback.data}]: Post not found')
+
+    await state.set_state(MenuNavigate.command)
+    await state.update_data(command=command)
+
+    for post in posts:
+        await callback.message.answer(
+            post.text,
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=[[KeyboardButton(text='Назад')]],
+                one_time_keyboard=True,
+                resize_keyboard=True
+            )
+        )
+
+    await callback.answer()
+
+
 @router.message()
-async def echo(message: Message, db: AsyncSession) -> None:
+async def message_handler(message: Message, state: FSMContext, db: AsyncSession) -> None:
     try:
-        default = await PostRepository(db).get_by_command_name('default')
-        await message.answer(text=default.text if default else '[default]: Handler not found')
+        menu_position = await state.get_data()
+        message_text = message.text
+
+        if message.text == 'Назад' and menu_position and menu_position['command']:
+            message_text = '@' + menu_position['command']
+
+        if not message_text.startswith('/') and not message_text.startswith('@'):
+            await message.answer('Unrecognized input command', reply_markup=ReplyKeyboardRemove())
+        else:
+            command = message_text.lstrip('/').lstrip('@')
+            post = await PostRepository(db).get_by_command_name(command)
+
+            kb = InlineKeyboardBuilder()
+            queries = await PostRepository(db).get_by_command_name(command, True)
+
+            for q in queries:
+                if q.callback_query is not None:
+                    kb.add(InlineKeyboardButton(text=q.title, callback_data=f'{q.command}:{q.callback_query}'))
+
+            await state.clear()
+
+            await message.answer(
+                text=post.text if post else f'[{command}]: Handler not found',
+                reply_markup=kb.adjust(2).as_markup()
+            )
     except TypeError:
         await message.answer('Nice try!')

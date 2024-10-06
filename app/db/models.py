@@ -17,6 +17,8 @@ class Post(BaseModel):
     __tablename__ = 'posts'
 
     command: Mapped[str] = mapped_column(String, unique=True)
+    callback_query: Mapped[str | None] = mapped_column(String, nullable=True)
+    title: Mapped[str] = mapped_column(String)
     text: Mapped[str] = mapped_column(Text)
 
 

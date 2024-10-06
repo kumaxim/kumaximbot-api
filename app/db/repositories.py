@@ -1,4 +1,5 @@
-from typing import cast, List, Sequence
+from types import NoneType
+from typing import cast, Sequence
 from sqlalchemy import delete, update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ class PostRepository:
 
     async def get_all(self) -> Sequence[Post]:
         result = await self.__session__.scalars(select(Post))
+
         return result.fetchall()
 
     async def create(self, post: Post) -> Post:
@@ -24,16 +26,42 @@ class PostRepository:
     async def get(self, post_id: int) -> Post | None:
         return await self.__session__.get(Post, post_id)
 
-    async def get_by_command_name(self, name: str) -> Post | None:
-        return await self.__session__.scalar(select(Post).filter_by(command=name))
+    async def get_by_command_name(
+            self,
+            name: str,
+            include_callback_queries: bool = False
+    ) -> Sequence[Post] | Post | NoneType:
+        if not include_callback_queries:
+            return await self.__session__.scalar(
+                select(Post).filter_by(command=name).filter(Post.callback_query.is_(None))
+            )
 
-    async def update(self, updated: Post):
+        result = await self.__session__.scalars(select(Post).filter_by(command=name))
+
+        return result.fetchall()
+
+    async def filter_by(self, **kwargs: str | int | None) -> Sequence[Post] | None:
+        query = select(Post)
+
+        for key, value in kwargs.items():
+            if hasattr(Post, key):
+                query = query.filter(getattr(Post, key) == value)
+
+        result = await self.__session__.scalars(query)
+
+        return result.fetchall()
+
+    async def update(self, updated: Post) -> Post:
         async with self.__session__.begin():
             return await self.__session__.scalar(
                 update(Post)
                 .where(cast('ColumnElement[bool]', Post.id == updated.id))
-                .values(text=updated.text, command=updated.command)
-                .returning(Post)
+                .values(
+                    title=updated.title,
+                    text=updated.text,
+                    command=updated.command,
+                    callback_query=updated.callback_query
+                ).returning(Post)
             )
 
     async def delete(self, post_id: int) -> None:
