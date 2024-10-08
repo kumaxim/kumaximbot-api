@@ -1,9 +1,8 @@
 from asyncio import current_task
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, async_scoped_session
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, async_scoped_session, AsyncSession
 
 from app.config import config as settings
-
-__all__ = ['session_factory']
 
 engine = create_async_engine(f'sqlite+aiosqlite://{settings.sqlite_path}',
                              connect_args={'check_same_thread': False},
@@ -14,7 +13,7 @@ scoped_session = async_scoped_session(
 )
 
 
-async def session_factory():
+async def session_factory() -> AsyncGenerator[AsyncSession, None]:
     session = scoped_session()
 
     try:

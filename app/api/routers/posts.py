@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import session_factory
 from app.db.models import Post as PostModel
-from app.db.repositories import PostRepository
+from app.db.repositories.post import PostRepository
 
 from ..schemas import Post, CreatePost, UpdatePost
 
