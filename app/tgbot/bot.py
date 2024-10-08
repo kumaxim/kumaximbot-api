@@ -13,7 +13,7 @@ from app.config import config
 from app.db.database import scoped_session, session_factory
 from app.db.repositories.post import PostRepository
 from .storage import SQLAlchemyStorage
-from .commands import router
+from .handlers import router
 
 bot = Bot(token=config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=SULGUK_PARSE_MODE))
 dp = Dispatcher(storage=SQLAlchemyStorage(scoped_session))
