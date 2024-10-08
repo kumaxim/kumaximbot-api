@@ -1,6 +1,4 @@
 import logging
-from contextlib import asynccontextmanager
-
 from typing import Annotated, Dict, Any
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, Update
@@ -16,14 +14,7 @@ from .tgbot.bot import on_startup, dp as dispatcher, bot as current_bot
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await on_startup()
-
-    yield
-
-app = FastAPI(lifespan=lifespan, debug=config.dev_mode)
+app = FastAPI(debug=config.dev_mode)
 app.add_middleware(
     CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
 )
@@ -47,6 +38,7 @@ async def webhook(update: Dict[str, Any],
                   dp: Annotated[Dispatcher, Depends(lambda: dispatcher)],
                   response: Response):
     try:
+        await on_startup()
         await dp.feed_webhook_update(bot, Update(**update))
     except:
         response.status_code = status.HTTP_200_OK

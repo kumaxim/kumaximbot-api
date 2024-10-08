@@ -15,7 +15,8 @@ from aiogram.types import (
     FSInputFile,
     CallbackQuery)
 from app.db.repositories.post import PostRepository
-
+from app.db.repositories.contact import ContactRepository
+from app.db.models import PostType
 
 router = Router()
 
@@ -46,70 +47,6 @@ async def send_welcome(message: Message, state: FSMContext, db: AsyncSession) ->
     await message.answer(text)
 
 
-@router.message(Command('resume'))
-async def resume_handler(message: Message) -> None:
-    kb = [
-        [
-            InlineKeyboardButton(text='Ссылка на hh.ru', callback_data='resume-url-to-hh.ru'),
-            InlineKeyboardButton(text='Скачать .pdf', callback_data='resume-download-pdf'),
-        ]
-    ]
-
-    await message.answer(text='Какой вариант предпочтительнее', reply_markup=InlineKeyboardMarkup(inline_keyboard=kb))
-
-
-@router.callback_query(F.data == 'resume-url-to-hh.ru')
-async def handler_resume_from_headhunter(callback: CallbackQuery) -> None:
-    url = '***REMOVED***'
-
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer(text=url)
-
-
-@router.callback_query(F.data == 'resume-download-pdf')
-async def handler_resume_download_pdf(callback: CallbackQuery) -> None:
-    pdf = FSInputFile(path=path.abspath('assets/resume.pdf'), filename='***REMOVED***')
-
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer_document(document=pdf)
-
-
-@router.message(Command('schedule'))
-async def schedule_handler(message: Message) -> None:
-    await message.answer(text='Согласовать дату/время интервью. Открыть календарь')
-
-
-@router.message(Command('contacts'))
-async def contacts_handler(message: Message) -> None:
-    text = f'Приоритетный способ связи - Telegram. Если нужно что-то переслать - email.'
-
-    kb = [
-        [
-            InlineKeyboardButton(text='Telegram', callback_data='contact-telegram'),
-            InlineKeyboardButton(text='Email', callback_data='contact-email'),
-        ]
-    ]
-
-    await message.answer(
-        text='Какой способ связи для Вас предпочтительнее?',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=kb)
-    )
-
-
-@router.callback_query(F.data == 'contact-telegram')
-async def handler_contact_telegram(callback: CallbackQuery) -> None:
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer_contact(phone_number='***REMOVED***', first_name='***REMOVED***', last_name='***REMOVED***')
-    await callback.answer()
-
-
-@router.callback_query(F.data == 'contact-email')
-async def handler_contact_telegram(callback: CallbackQuery) -> None:
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer(text='***REMOVED***')
-    await callback.answer()
-
-
 @router.callback_query()
 async def callback_handler(callback: CallbackQuery, state: FSMContext, db: AsyncSession) -> None:
     await callback.message.edit_reply_markup(reply_markup=None)
@@ -124,15 +61,27 @@ async def callback_handler(callback: CallbackQuery, state: FSMContext, db: Async
     await state.set_state(MenuNavigate.command)
     await state.update_data(command=command)
 
+    keyboard_markup = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text='Назад')]],
+        one_time_keyboard=True,
+        resize_keyboard=True
+    )
+
     for post in posts:
-        await callback.message.answer(
-            post.text,
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard=[[KeyboardButton(text='Назад')]],
-                one_time_keyboard=True,
-                resize_keyboard=True
-            )
-        )
+        if post.type == PostType.TEXT:
+            await callback.message.answer(post.text, reply_markup=keyboard_markup)
+        elif post.type == PostType.CONTACT:
+            contact = await ContactRepository(db).get(int(post.text))
+
+            await callback.message.answer_contact(
+                phone_number=f'+{contact.phone_number}',
+                first_name=contact.first_name,
+                last_name=contact.last_name,
+                reply_markup=keyboard_markup)
+        elif post.type == PostType.DOCUMENT:
+            pdf = FSInputFile(path=path.abspath('assets/resume.pdf'), filename='***REMOVED***')
+
+            await callback.message.answer_document(document=pdf, reply_markup=keyboard_markup)
 
     await callback.answer()
 

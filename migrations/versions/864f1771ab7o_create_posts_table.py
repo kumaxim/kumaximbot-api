@@ -22,10 +22,12 @@ def upgrade() -> None:
     op.create_table('posts',
                     sa.Column('id', sa.Integer(), primary_key=True, autoincrement=True),
                     sa.Column('command', sa.String(), nullable=False),
+                    sa.Column('type', sa.String(), default='text', nullable=False),
                     sa.Column('callback_query', sa.String(), nullable=True),
                     sa.Column('title', sa.String(), nullable=False),
                     sa.Column('text', sa.Text(), nullable=False),
                     sa.UniqueConstraint('command', 'callback_query', name='unique_command_callback_query'),
+                    sa.CheckConstraint("type IN ('contact', 'text', 'document')", name='check_aiogram_answer_type'),
                     )
     # ### end Alembic commands ###
 

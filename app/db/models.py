@@ -1,6 +1,13 @@
+from enum import Enum
 from sqlalchemy import Integer, String, Text, DateTime, PrimaryKeyConstraint
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.ext.asyncio import AsyncAttrs
+
+
+class PostType(str, Enum):
+    TEXT = 'text'
+    DOCUMENT = 'document'
+    CONTACT = 'contact'
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -17,17 +24,21 @@ class Post(BaseModel):
     __tablename__ = 'posts'
 
     command: Mapped[str] = mapped_column(String, unique=True)
+    type: Mapped[PostType] = mapped_column(String, default=PostType.TEXT)
     callback_query: Mapped[str | None] = mapped_column(String, nullable=True)
     title: Mapped[str] = mapped_column(String)
     text: Mapped[str] = mapped_column(Text)
 
 
-class Meet(BaseModel):
-    __tablename__ = 'meets'
+class Contact(BaseModel):
+    __tablename__ = 'contacts'
 
-    date: Mapped[str] = mapped_column(DateTime)
-    companion: Mapped[str] = mapped_column(String)
-    type: Mapped[str] = mapped_column(Integer)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str] = mapped_column(String, nullable=False)
+    phone_number: Mapped[str] = mapped_column(String, nullable=False)
+    resume_url: Mapped[str] = mapped_column(String, nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
 
 
 class StorageFSM(Base):

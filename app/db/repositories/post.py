@@ -55,7 +55,7 @@ class PostRepository:
         async with self.__session__.begin():
             return await self.__session__.scalar(
                 update(Post)
-                .where(cast('ColumnElement[bool]', Post.id == updated.id))
+                .filter(updated.id == Post.id)
                 .values(
                     title=updated.title,
                     text=updated.text,

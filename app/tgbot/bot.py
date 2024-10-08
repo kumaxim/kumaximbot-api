@@ -38,7 +38,7 @@ async def on_startup():
     session_manager = asynccontextmanager(session_factory)
 
     async with session_manager() as session:
-        posts = await PostRepository(session).get_all()
+        posts = await PostRepository(session).filter_by(callback_query=None)
 
         await bot.set_my_commands([
             BotCommand(command=post.command, description=post.title) for post in posts if post.command != 'start'
