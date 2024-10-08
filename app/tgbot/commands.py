@@ -14,7 +14,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
     FSInputFile,
     CallbackQuery)
-from app.db.repositories import PostRepository
+from app.db.repositories.post import PostRepository
 
 
 router = Router()
@@ -117,7 +117,6 @@ async def callback_handler(callback: CallbackQuery, state: FSMContext, db: Async
     command, _, query = callback.data.partition(':')
 
     posts = await PostRepository(db).filter_by(command=command, callback_query=query)
-    await state.update_data(command=command, query=query)
 
     if len(posts) == 0:
         await callback.message.answer(f'[{callback.data}]: Post not found')
@@ -164,7 +163,7 @@ async def message_handler(message: Message, state: FSMContext, db: AsyncSession)
 
             await message.answer(
                 text=post.text if post else f'[{command}]: Handler not found',
-                reply_markup=kb.adjust(2).as_markup()
+                reply_markup=kb.adjust(2).as_markup() if sum(1 for _ in kb.buttons) else ReplyKeyboardRemove()
             )
     except TypeError:
         await message.answer('Nice try!')

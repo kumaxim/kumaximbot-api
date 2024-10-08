@@ -10,13 +10,13 @@ from aiogram.client.default import DefaultBotProperties
 from sulguk import AiogramSulgukMiddleware, SULGUK_PARSE_MODE
 
 from app.config import config
-from app.db.database import session_factory
-from app.db.repositories import PostRepository
+from app.db.database import scoped_session, session_factory
+from app.db.repositories.post import PostRepository
+from .storage import SQLAlchemyStorage
 from .commands import router
 
-
 bot = Bot(token=config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=SULGUK_PARSE_MODE))
-dp = Dispatcher()
+dp = Dispatcher(storage=SQLAlchemyStorage(scoped_session))
 
 
 async def setup_database_session(
@@ -24,9 +24,7 @@ async def setup_database_session(
         event: Update,
         data: Dict[str, Any]
 ):
-    database_session = asynccontextmanager(session_factory)
-
-    async with database_session() as session:
+    async with asynccontextmanager(session_factory)() as session:
         data['db'] = session
 
         return await handler(event, data)
