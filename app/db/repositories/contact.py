@@ -16,6 +16,8 @@ class ContactRepository:
 
     async def create(self, contact: Contact) -> Contact:
         self.__session__.add(contact)
+
+        await self.__session__.commit()
         await self.__session__.refresh(contact)
 
         return contact
@@ -24,12 +26,22 @@ class ContactRepository:
         return await self.__session__.get(Contact, contact_id)
 
     async def update(self, updated: Contact) -> Contact:
-        return await self.__session__.scalar(
+        contact = await self.__session__.scalar(
             update(Contact)
             .filter(updated.id == Contact.id)
-            .values(**updated.__dict__)
+            .values(
+                first_name=updated.first_name,
+                last_name=updated.last_name,
+                phone_number=updated.phone_number,
+                resume_url=updated.resume_url,
+                email=updated.email
+            )
             .returning(Contact)
         )
+
+        await self.__session__.commit()
+
+        return contact
 
     async def delete(self, contact_id: int) -> None:
         raise RuntimeError("Deleting contacts is prohibited")

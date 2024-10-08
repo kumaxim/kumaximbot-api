@@ -15,7 +15,7 @@ DatabaseSession = Annotated[AsyncSession, Depends(session_factory)]
 
 
 @router.get("/", operation_id='listPosts')
-async def get_posts(session: Annotated[AsyncSession, Depends(session_factory)]) -> Sequence[Post]:
+async def get_posts(session: DatabaseSession) -> Sequence[Post]:
     all_posts = await PostRepository(session).get_all()
 
     return all_posts

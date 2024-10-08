@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from .config import config
-from .api.routers import posts, default
+from .api.routers import posts,contacts, default
 from .tgbot.bot import on_startup, dp as dispatcher, bot as current_bot
 
 
@@ -19,6 +19,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
 )
 app.include_router(posts.router, prefix="/posts", tags=['posts'])
+app.include_router(contacts.router, prefix="/contacts", tags=["contacts"])
 app.include_router(default.router)
 
 
