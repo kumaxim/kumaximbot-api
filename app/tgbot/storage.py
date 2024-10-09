@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Dict, Optional
 from aiogram.fsm.state import State
 from aiogram.fsm.storage.base import BaseStorage, StorageKey, StateType
-from sqlalchemy import delete, update, select
+from sqlalchemy import insert, delete, update, select
 
 from app.db.models import StorageFSM
 
@@ -32,8 +32,8 @@ class SQLAlchemyStorage(BaseStorage):
                     .values(state=state.state if isinstance(state, State) else state)
                 )
             else:
-                self.__session__.add(
-                    StorageFSM(**key.__dict__, state=state.state if isinstance(state, State) else state)
+                await self.__session__.execute(
+                    insert(StorageFSM).values(**key.__dict__, state=state.state if isinstance(state, State) else state)
                 )
 
         await self.__session__.commit()
@@ -50,7 +50,9 @@ class SQLAlchemyStorage(BaseStorage):
             await self.__session__.execute(update(StorageFSM).filter_by(**key.__dict__).values(data=json.dumps(data)))
 
         if not storage and data.keys():
-            self.__session__.add(StorageFSM(**key.__dict__, data=json.dumps(data)))
+            await self.__session__.execute(
+                insert(StorageFSM).values(**key.__dict__, data=json.dumps(data))
+            )
 
         await self.__session__.commit()
 

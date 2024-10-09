@@ -1,8 +1,8 @@
 import logging
 from sys import stdout as sys_stdout
 from asyncio import run as async_run
-from contextlib import asynccontextmanager
 from typing import Callable, Awaitable, Dict, Any
+from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand, Update
@@ -10,13 +10,14 @@ from aiogram.client.default import DefaultBotProperties
 from sulguk import AiogramSulgukMiddleware, SULGUK_PARSE_MODE
 
 from app.config import config
-from app.db.database import scoped_session, session_factory
+from app.db.database import session_factory, scoped_session
 from app.db.repositories.post import PostRepository
 from .storage import SQLAlchemyStorage
 from .handlers import router
 
 bot = Bot(token=config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=SULGUK_PARSE_MODE))
 dp = Dispatcher(storage=SQLAlchemyStorage(scoped_session))
+async_session = asynccontextmanager(session_factory)
 
 
 async def setup_database_session(
@@ -24,10 +25,10 @@ async def setup_database_session(
         event: Update,
         data: Dict[str, Any]
 ):
-    async with asynccontextmanager(session_factory)() as session:
-        data['db'] = session
+    async with async_session() as db:
+        data['db'] = db
 
-        return await handler(event, data)
+    return await handler(event, data)
 
 
 async def on_startup():
@@ -35,10 +36,8 @@ async def on_startup():
     dp.update.outer_middleware(setup_database_session)
     dp.include_router(router)
 
-    session_manager = asynccontextmanager(session_factory)
-
-    async with session_manager() as session:
-        posts = await PostRepository(session).filter_by(callback_query=None)
+    async with async_session() as db:
+        posts = await PostRepository(db).filter_by(callback_query=None)
 
         await bot.set_my_commands([
             BotCommand(command=post.command, description=post.title) for post in posts if post.command != 'start'

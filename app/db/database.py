@@ -14,12 +14,15 @@ scoped_session = async_scoped_session(
 
 
 async def session_factory() -> AsyncGenerator[AsyncSession, None]:
-    session = scoped_session()
+    session: AsyncSession = scoped_session()
+    # await session.begin()
 
     try:
         yield session
     except Exception:
         await session.rollback()
         raise
+    else:
+        await session.commit()
     finally:
         await session.close()

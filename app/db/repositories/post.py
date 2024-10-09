@@ -1,6 +1,6 @@
 from types import NoneType
 from typing import cast, Sequence
-from sqlalchemy import delete, update, select
+from sqlalchemy import insert, delete, update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Post
@@ -16,12 +16,15 @@ class PostRepository:
         return result.fetchall()
 
     async def create(self, post: Post) -> Post:
-        async with self.__session__.begin():
-            self.__session__.add(post)
-
-        await self.__session__.refresh(post)
-
-        return post
+        return await self.__session__.scalar(
+            insert(Post)
+            .values(
+                title=post.title,
+                text=post.text,
+                command=post.command,
+                callback_query=post.callback_query
+            ).returning(Post)
+        )
 
     async def get(self, post_id: int) -> Post | None:
         return await self.__session__.get(Post, post_id)
@@ -52,18 +55,16 @@ class PostRepository:
         return result.fetchall()
 
     async def update(self, updated: Post) -> Post:
-        async with self.__session__.begin():
-            return await self.__session__.scalar(
-                update(Post)
-                .filter(updated.id == Post.id)
-                .values(
-                    title=updated.title,
-                    text=updated.text,
-                    command=updated.command,
-                    callback_query=updated.callback_query
-                ).returning(Post)
-            )
+        return await self.__session__.scalar(
+            update(Post)
+            .filter(updated.id == Post.id)
+            .values(
+                title=updated.title,
+                text=updated.text,
+                command=updated.command,
+                callback_query=updated.callback_query
+            ).returning(Post)
+        )
 
     async def delete(self, post_id: int) -> None:
-        async with self.__session__.begin():
-            await self.__session__.execute(delete(Post).where(cast('ColumnElement[bool]', Post.id == post_id)))
+        await self.__session__.execute(delete(Post).where(cast('ColumnElement[bool]', Post.id == post_id)))

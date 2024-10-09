@@ -1,5 +1,5 @@
-from typing import cast, Sequence
-from sqlalchemy import delete, update, select
+from typing import Sequence
+from sqlalchemy import insert, update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Contact
@@ -15,12 +15,16 @@ class ContactRepository:
         return result.fetchall()
 
     async def create(self, contact: Contact) -> Contact:
-        self.__session__.add(contact)
-
-        await self.__session__.commit()
-        await self.__session__.refresh(contact)
-
-        return contact
+        return await self.__session__.scalar(
+            insert(Contact)
+            .values(
+                first_name=contact.first_name,
+                last_name=contact.last_name,
+                phone_number=contact.phone_number,
+                resume_url=contact.resume_url,
+                email=contact.email
+            ).returning(Contact)
+        )
 
     async def get(self, contact_id: int) -> Contact | None:
         return await self.__session__.get(Contact, contact_id)
@@ -38,8 +42,6 @@ class ContactRepository:
             )
             .returning(Contact)
         )
-
-        await self.__session__.commit()
 
         return contact
 
