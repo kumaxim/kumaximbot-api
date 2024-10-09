@@ -3,11 +3,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
+from .logger import logger
 from .config import config
 from .api.routers import posts, contacts, default, webhook
 
-
-logging.getLogger().setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 app = FastAPI(debug=config.dev_mode)
 app.add_middleware(
