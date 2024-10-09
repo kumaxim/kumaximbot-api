@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 from sqlalchemy import Integer, String, Text, DateTime, PrimaryKeyConstraint
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -39,6 +40,16 @@ class Contact(BaseModel):
     phone_number: Mapped[str] = mapped_column(String, nullable=False)
     resume_url: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
+
+
+class OAuth2(BaseModel):
+    __tablename__ = 'oauth2'
+
+    hostname: Mapped[str] = mapped_column(String, nullable=False)
+    access_token: Mapped[str] = mapped_column(String, nullable=False)
+    refresh_token: Mapped[str] = mapped_column(String, nullable=False)
+    expires_in: Mapped[int] = mapped_column(Integer, nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
 class StorageFSM(Base):
