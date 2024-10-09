@@ -5,7 +5,7 @@ from mangum import Mangum
 
 from .logger import logger
 from .config import config
-from .api.routers import posts, contacts, default, webhook
+from .api.routers import posts, contacts, default, webhook, headhunter
 
 logger.setLevel(logging.DEBUG)
 
@@ -14,7 +14,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
 )
 
-for module in [posts, contacts, webhook, default]:
+for module in [posts, contacts, webhook, headhunter, default]:
     app.include_router(module.router)
 
 
