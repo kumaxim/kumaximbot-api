@@ -4,6 +4,7 @@ from pydantic import SecretStr
 
 class Settings(BaseSettings):
     bot_token: SecretStr
+    telegram_secret_token: SecretStr
     sqlite_path: str = '/assets/db.sqlite'
     dev_mode: bool = False
 

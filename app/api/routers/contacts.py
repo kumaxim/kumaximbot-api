@@ -7,7 +7,7 @@ from app.db.models import Contact as ContactModel
 from app.db.repositories.contact import ContactRepository
 from ..schemas import Contact, CreateContact, UpdateContact
 
-router = APIRouter()
+router = APIRouter(prefix='/contacts', tags=['contacts'])
 DatabaseSession = Annotated[AsyncSession, Depends(session_factory)]
 
 
@@ -28,7 +28,7 @@ async def get_contact(contact_id: int, db: DatabaseSession) -> Contact:
     contact = await ContactRepository(db).get(contact_id)
 
     if not contact:
-        raise HTTPException(status_code=404, detail="Contact not found")
+        raise HTTPException(status_code=404, detail='Contact not found')
 
     return contact
 

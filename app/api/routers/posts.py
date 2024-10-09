@@ -10,7 +10,7 @@ from app.db.repositories.post import PostRepository
 from ..schemas import Post, CreatePost, UpdatePost
 
 
-router = APIRouter()
+router = APIRouter(prefix='/posts', tags=['posts'])
 DatabaseSession = Annotated[AsyncSession, Depends(session_factory)] 
 
 
