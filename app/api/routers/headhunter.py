@@ -7,11 +7,12 @@ from requests_oauthlib import OAuth2Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import config
+from ..security import get_user
 from app.db.database import session_factory
 from app.db.models import OAuth2 as OAuth2Model
 from app.db.repositories.oauth2 import OAuth2Repository, ClientHostname
 
-router = APIRouter(prefix='/hh', tags=['hh'])
+router = APIRouter(prefix='/headhunter', tags=['headhunter'], dependencies=[Depends(get_user)])
 DatabaseSession = Annotated[AsyncSession, Depends(session_factory)]
 
 

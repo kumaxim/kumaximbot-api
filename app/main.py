@@ -15,6 +15,9 @@ app.add_middleware(
 )
 
 for module in [posts, contacts, webhook, headhunter, default]:
+    if hasattr(module, 'protected'):
+        module.router.include_router(module.protected)
+
     app.include_router(module.router)
 
 

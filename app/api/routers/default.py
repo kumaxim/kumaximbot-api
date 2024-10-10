@@ -6,7 +6,10 @@ router = APIRouter()
 
 @router.get('/')
 async def root():
-    return {"message": "Hello World"}
+    return {
+        "hello": "Im am @kumaximbot API",
+        "url": "https://t.me/kumaximbot"
+    }
 
 
 @router.get('/robots.txt', response_class=PlainTextResponse)
