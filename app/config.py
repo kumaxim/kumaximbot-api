@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     hh_client_secret: SecretStr
     hh_application_name: str
     hh_resume_id: str
-    yandex_privileged_login: str
+    privileged_user_login: str
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
