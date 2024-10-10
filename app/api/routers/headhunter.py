@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
-from typing import Annotated, Dict
-from fastapi import APIRouter, Request, Depends, Query, HTTPException, status
+from typing import Annotated
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from fastapi.responses import RedirectResponse
 from requests_oauthlib import OAuth2Session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,7 +38,7 @@ async def auth(db: DatabaseSession, code: Annotated[str, Query()] = None, state:
     if client and (client.issued_at.timestamp() + client.expires_in) > datetime.now().timestamp():
         return client
 
-    headhunter = OAuth2Session(config.hh_client_id, state=state)
+    headhunter = OAuth2Session(config.hh_oauth_client_id, state=state)
     authorization_url, state = headhunter.authorization_url('https://hh.ru/oauth/authorize')
 
     if code is None:
@@ -47,7 +47,7 @@ async def auth(db: DatabaseSession, code: Annotated[str, Query()] = None, state:
     token = headhunter.fetch_token(
         'https://api.hh.ru/token',
         include_client_id=True,
-        client_secret=config.hh_client_secret.get_secret_value(),
+        client_secret=config.hh_oauth_client_secret.get_secret_value(),
         code=code,
         state=state,
         headers={
