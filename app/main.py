@@ -5,7 +5,7 @@ from mangum import Mangum
 
 from .logger import logger
 from .config import config
-from .api.routers import posts, contacts, default, webhook, headhunter
+from .api.routers import posts, contacts, default, webhook, headhunter, users
 
 logger.setLevel(logging.DEBUG)
 
@@ -14,7 +14,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
 )
 
-for module in [posts, contacts, webhook, headhunter, default]:
+for module in [posts, contacts, users, webhook, headhunter, default]:
     if hasattr(module, 'protected'):
         module.router.include_router(module.protected)
 

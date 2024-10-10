@@ -32,7 +32,7 @@ class OAuth2AuthorizationCodeYandex(OAuth2AuthorizationCodeBearer):
 oauth2_scheme = OAuth2AuthorizationCodeYandex(
     authorizationUrl='https://oauth.yandex.ru/authorize',
     tokenUrl='https://oauth.yandex.ru/token',
-    scheme_name='Yandex ID',
+    scheme_name='YandexID',
     scopes={},
 )
 

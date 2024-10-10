@@ -60,3 +60,15 @@ class User(BaseModel):
     emails: List[str]
     default_phone: Phone
     psuid: str
+
+
+class OAuth2Token(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+    refresh_token: str
+    scope: Optional[str]
+
+
+class OAuth2TokenRevoke(BaseModel):
+    status: str = 'ok'
