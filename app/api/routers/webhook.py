@@ -1,11 +1,9 @@
-from typing import Annotated, Dict, Any, Union
+from typing import Annotated, Dict, Any
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update, WebhookInfo
 from aiogram.exceptions import AiogramError
-
 from fastapi import APIRouter, Request, Response, status, Depends
-
-from app.tgbot.bot import on_startup, dp as dispatcher, bot as current_bot
+from app.tgbot.bot import dp as dispatcher, bot as current_bot
 from app.logger import logger
 from ..security import get_bot_secret_token, get_user
 
@@ -34,8 +32,6 @@ async def webhook(update: Dict[str, Any],
                   dp: Annotated[Dispatcher, Depends(lambda: dispatcher)],
                   response: Response) -> None:
     try:
-        await on_startup()
-
         return await dp.feed_webhook_update(bot, Update(**update))
     except AiogramError as error:
         logger.error(error)
