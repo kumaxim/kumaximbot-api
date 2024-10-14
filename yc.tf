@@ -239,5 +239,5 @@ data "http" "setup-tg-webhook" {
   request_headers = {
     Content-Type : "application/x-www-form-urlencoded"
   }
-  request_body = "url=${yandex_api_gateway.gw.domain}/webhook&drop_pending_updates=True&secret_token=${var.TELEGRAM_SECRET_TOKEN}"
+  request_body = "url=https://${yandex_api_gateway.gw.domain}/telegram/webhook&drop_pending_updates=True&secret_token=${var.TELEGRAM_SECRET_TOKEN}"
 }
