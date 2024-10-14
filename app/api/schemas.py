@@ -1,10 +1,18 @@
+from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel
+
+
+class PostType(Enum):
+    TEXT = 'text'
+    DOCUMENT = 'document'
+    CONTACT = 'contact'
 
 
 class Post(BaseModel):
     id: int
     command: str
+    type: PostType = PostType.TEXT
     callback_query: Optional[str] = None
     title: str
     text: str
@@ -12,6 +20,7 @@ class Post(BaseModel):
 
 class CreatePost(BaseModel):
     command: str
+    type: PostType = PostType.TEXT
     callback_query: Optional[str] = None
     title: str
     text: str
