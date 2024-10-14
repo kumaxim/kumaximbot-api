@@ -63,9 +63,9 @@ apikey_scheme = APIKeyHeader(name='X-Telegram-Bot-Api-Secret-Token')
 
 async def get_bot_secret_token(secret_token: Annotated[str, Depends(apikey_scheme)]) -> str:
     if not secret_token:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Missing secret token')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing secret token')
 
-    if secret_token != config.telegram_secret_token:
+    if secret_token != config.telegram_secret_token.get_secret_value():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid secret token')
 
     return secret_token
