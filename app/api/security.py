@@ -38,11 +38,18 @@ oauth2_scheme = OAuth2AuthorizationCodeYandex(
 
 
 async def get_user(access_token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    response = requests.get('https://login.yandex.ru/info', headers={
-        'Authorization': f'Bearer {access_token}',
-    })
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing access token')
 
-    response.raise_for_status()
+    try:
+        response = requests.get('https://login.yandex.ru/info', headers={
+            'Authorization': f'Bearer {access_token}',
+        })
+
+        response.raise_for_status()
+    except requests.HTTPError as err:
+        raise HTTPException(status_code=err.response.status_code, detail=err.response.reason)
+
     user = User(**response.json())
 
     if user.login.lower() != config.privileged_user_login:
