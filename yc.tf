@@ -240,8 +240,4 @@ data "http" "setup-tg-webhook" {
     Content-Type : "application/x-www-form-urlencoded"
   }
   request_body = "url=${yandex_api_gateway.gw.domain}/webhook&drop_pending_updates=True&secret_token=${var.TELEGRAM_SECRET_TOKEN}"
-
-  triggers = {
-    domain = yandex_api_gateway.gw.domain
-  }
 }
