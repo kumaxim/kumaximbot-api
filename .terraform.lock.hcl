@@ -15,13 +15,6 @@ provider "registry.terraform.io/hashicorp/http" {
   ]
 }
 
-provider "registry.terraform.io/hashicorp/null" {
-  version = "3.2.3"
-  hashes = [
-    "h1:+AnORRgFbRO6qqcfaQyeX80W0eX3VmjadjnUFUJTiXo=",
-  ]
-}
-
 provider "registry.terraform.io/yandex-cloud/yandex" {
   version = "0.129.0"
   hashes = [
