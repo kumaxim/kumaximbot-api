@@ -1,6 +1,5 @@
-import requests
+from os import path
 from base64 import b64decode
-from requests.exceptions import HTTPError
 from aiogram import Router, html
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -13,11 +12,10 @@ from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
-    URLInputFile,
+    FSInputFile,
     CallbackQuery)
 from app.db.repositories.post import PostRepository
 from app.db.repositories.contact import ContactRepository
-from app.db.repositories.oauth2 import OAuth2Repository, ClientHostname
 from app.db.models import PostType
 from app.logger import logger
 from app.config import config
@@ -83,45 +81,14 @@ async def callback_handler(callback: CallbackQuery, state: FSMContext, db: Async
                 last_name=contact.last_name,
                 reply_markup=keyboard_markup)
         elif post.type == PostType.DOCUMENT:
-            loading_status = await callback.message.answer(text='Загружаю...')
+            filename = path.join(config.assets_path, post.text)
 
-            oauth2client = await OAuth2Repository(db).get(ClientHostname.HEADHUNTER)
-
-            if oauth2client is None:
-                logger.warning('HeadHunter OAuth2 client was not initialized')
-
-                await loading_status.edit_text('Извините, Ваш запрос невозможно обработать')
-
-                return
-
-            headers = {
-                'User-Agent': f'{config.hh_application_name}',
-                'Authorization': f'Bearer {oauth2client.access_token}'
-            }
-
-            try:
-                response = requests.get(f'https://api.hh.ru/resumes/{config.hh_resume_id}', headers=headers)
-                resume = response.json()
-
-                basename = '_'.join([
-                    'cv_senior_python_developer',
-                    b64decode(
-                        ''.join(['a', '3', 'V', 'k', 'c', 'n', 'l', 'h', 'd', 'n', 'R', 'z', 'Z', 'X', 'Y', '='])
-                    ).decode('utf-8')
-                ])
-
-                pdf = URLInputFile(url=resume['download']['pdf']['url'], filename=f'{basename}.pdf', headers=headers)
-
+            if not path.isfile(filename):
+                await callback.message.answer('Извините, файл не найден', reply_markup=keyboard_markup)
+                await logger.warning(f'[{command}:{query}]: File "{post.text}" not found in assets directory')
+            else:
+                pdf = FSInputFile(path=filename, filename=post.text)
                 await callback.message.answer_document(document=pdf, reply_markup=keyboard_markup)
-                await loading_status.delete()
-            except HTTPError as http:
-                if 400 <= http.response.status_code < 500:
-                    logger.error(http.response.reason)
-
-                    await loading_status.edit_text('Извините, Ваш запрос невозможно обработать')
-
-                    if http.response.status_code == 401 or http.response.status_code == 403:
-                        pass
 
     await callback.answer()
 
@@ -155,4 +122,4 @@ async def message_handler(message: Message, state: FSMContext, db: AsyncSession)
                 reply_markup=kb.adjust(2).as_markup() if sum(1 for _ in kb.buttons) else ReplyKeyboardRemove()
             )
     except TypeError:
-        await message.answer('Nice try!')
+        await message.answer('Unrecognized input command', reply_markup=ReplyKeyboardRemove())

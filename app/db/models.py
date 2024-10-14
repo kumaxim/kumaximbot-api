@@ -42,16 +42,6 @@ class Contact(BaseModel):
     email: Mapped[str] = mapped_column(String, nullable=False)
 
 
-class OAuth2(BaseModel):
-    __tablename__ = 'oauth2'
-
-    hostname: Mapped[str] = mapped_column(String, nullable=False)
-    access_token: Mapped[str] = mapped_column(String, nullable=False)
-    refresh_token: Mapped[str] = mapped_column(String, nullable=False)
-    expires_in: Mapped[int] = mapped_column(Integer, nullable=False)
-    issued_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-
-
 class StorageFSM(Base):
     __tablename__ = 'storage_fsm'
     __table_args__ = (PrimaryKeyConstraint('chat_id', 'user_id'),)
