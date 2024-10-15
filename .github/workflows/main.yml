@@ -43,17 +43,14 @@ jobs:
         version: '1.8.3'
 
     - name: Install project
-      run: poetry install --no-interaction --without=dev
-
-    - name: Export requirements.txt
-      run: |
-        source .venv/bin/activate
-        poetry export -o requirements.txt --without-hashes --without=dev
+      run: poetry install --no-interaction
 
     - name: Apply migrations
-      run: |
-        source .venv/bin/activate
-        alembic upgrade head
+      run:
+        poetry run alembic upgrade head
+
+    - name: Export requirements.txt
+      run: poetry export -o requirements.txt --without-hashes --without=dev
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
