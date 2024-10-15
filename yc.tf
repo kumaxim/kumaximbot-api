@@ -79,32 +79,6 @@ output "telegram-webhook" {
   }
 }
 
-# resource "null_resource" "requirements" {
-#   triggers = {
-#     requirements = filesha512("${path.module}/poetry.lock")
-#   }
-#
-#   provisioner "local-exec" {
-#     command = "poetry export -o requirements.txt --without-hashes --without=dev"
-#   }
-# }
-#
-# resource "null_resource" "migrations" {
-#   triggers = {
-#     sha512sum = sha512(
-#       trimspace(
-#         join("", [
-#           for table in fileset(path.module, "migrations/**/*.py") : file("${path.module}/${table}")
-#         ])
-#       )
-#     )
-#   }
-#
-#   provisioner "local-exec" {
-#     command = "[ -f ${path.module}/assets/${local.sqlite_filename} ] && poetry run alembic upgrade head || poetry run alembic init && poetry run alembic upgrade head"
-#   }
-# }
-
 resource "yandex_iam_service_account_static_access_key" "sa-keys" {
   service_account_id = var.SERVICE_ACCOUNT_ID
   description        = "static access key for object storage"
