@@ -17,6 +17,17 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    env:
+      TF_VAR_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      TF_VAR_PRIVILEGED_USER_LOGIN: ${{ secrets.PRIVILEGED_USER_LOGIN }}
+      TF_VAR_SERVICE_ACCOUNT_ID: ${{ secrets.YC_SERVICE_ACCOUNT_ID }}
+      TF_VAR_TELEGRAM_SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+      TF_VAR_YANDEX_OAUTH_CLIENT_ID: ${{ secrets.YANDEX_OAUTH_CLIENT_ID }}
+      TF_VAR_YANDEX_OAUTH_CLIENT_SECRET: ${{ secrets.YANDEX_OAUTH_CLIENT_SECRET }}
+      YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
+      YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      YC_SERVICE_ACCOUNT_KEY_FILE: ${{ secrets.YC_SERVICE_ACCOUNT_KEY_FILE }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -60,16 +71,6 @@ jobs:
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
-      env:
-        TF_VAR_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        TF_VAR_PRIVILEGED_USER_LOGIN: ${{ secrets.PRIVILEGED_USER_LOGIN }}
-        TF_VAR_SERVICE_ACCOUNT_ID: ${{ secrets.YC_SERVICE_ACCOUNT_ID }}
-        TF_VAR_TELEGRAM_SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
-        TF_VAR_YANDEX_OAUTH_CLIENT_ID: ${{ secrets.YANDEX_OAUTH_CLIENT_ID }}
-        TF_VAR_YANDEX_OAUTH_CLIENT_SECRET: ${{ secrets.YANDEX_OAUTH_CLIENT_SECRET }}
-        YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
-        YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
-        YC_SERVICE_ACCOUNT_KEY_FILE: ${{ secrets.YC_SERVICE_ACCOUNT_KEY_FILE }}
       with:
         terraform_version: 1.9.6
 
