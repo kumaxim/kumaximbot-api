@@ -10,6 +10,7 @@ on:
       - master
     paths-ignore:
       - "**.md"
+      - "env.example"
       - ".gitignore"
       - ".idea/**"
 
