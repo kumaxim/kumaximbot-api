@@ -46,6 +46,12 @@ jobs:
       run: poetry install --no-interaction
 
     - name: Apply migrations
+      env:
+        BOT_TOKEN: "any"
+        TELEGRAM_SECRET_TOKEN: "any"
+        YANDEX_OAUTH_CLIENT_ID: "any"
+        YANDEX_OAUTH_CLIENT_SECRET: "any"
+        PRIVILEGED_USER_LOGIN: "any"
       run:
         poetry run alembic upgrade head
 
