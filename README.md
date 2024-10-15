@@ -1,4 +1,4 @@
-# Telegram Bot @kumaxim-bot
+# API of Telegram Bot @kumaximbot
 
 [![Yandex Function](https://github.com/kumaxim/kumaximbot-api/actions/workflows/main.yml/badge.svg)](https://github.com/kumaxim/kumaximbot-api/actions/workflows/main.yml)
 
