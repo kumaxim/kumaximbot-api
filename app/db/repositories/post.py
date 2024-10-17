@@ -50,7 +50,7 @@ class PostRepository:
             if hasattr(Post, key):
                 query = query.filter(getattr(Post, key) == value)
 
-        result = await self.__session__.scalars(query)
+        result = await self.__session__.scalars(query.order_by(Post.command))
 
         return result.fetchall()
 
