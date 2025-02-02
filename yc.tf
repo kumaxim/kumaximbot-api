@@ -116,34 +116,6 @@ data "archive_file" "dist" {
   depends_on  = [yandex_storage_object.tgbot]
 }
 
-resource "yandex_lockbox_secret" "tgbot" {
-  name = local.project_slug
-}
-
-resource "yandex_lockbox_secret_version" "tgbot-latest" {
-  secret_id = yandex_lockbox_secret.tgbot.id
-  entries {
-    key        = "BOT_TOKEN"
-    text_value = var.BOT_TOKEN
-  }
-  entries {
-    key        = "TELEGRAM_SECRET_TOKEN"
-    text_value = var.TELEGRAM_SECRET_TOKEN
-  }
-  entries {
-    key        = "YANDEX_OAUTH_CLIENT_ID"
-    text_value = var.YANDEX_OAUTH_CLIENT_ID
-  }
-  entries {
-    key        = "YANDEX_OAUTH_CLIENT_SECRET"
-    text_value = var.YANDEX_OAUTH_CLIENT_SECRET
-  }
-  entries {
-    key        = "PRIVILEGED_USER_LOGIN"
-    text_value = var.PRIVILEGED_USER_LOGIN
-  }
-}
-
 resource "yandex_function" "handler" {
   name               = local.project_slug
   user_hash          = data.archive_file.dist.output_sha512
@@ -156,39 +128,14 @@ resource "yandex_function" "handler" {
     zip_filename = data.archive_file.dist.output_path
   }
   environment = {
-    DEV_MODE    = "False"
-    ASSETS_PATH = "//function/storage/assets"
-    SQLITE_PATH = "//function/storage/assets/${local.sqlite_filename}"
-  }
-  secrets {
-    id                   = yandex_lockbox_secret.tgbot.id
-    version_id           = yandex_lockbox_secret_version.tgbot-latest.id
-    key                  = "BOT_TOKEN"
-    environment_variable = "BOT_TOKEN"
-  }
-  secrets {
-    id                   = yandex_lockbox_secret.tgbot.id
-    version_id           = yandex_lockbox_secret_version.tgbot-latest.id
-    key                  = "TELEGRAM_SECRET_TOKEN"
-    environment_variable = "TELEGRAM_SECRET_TOKEN"
-  }
-  secrets {
-    id                   = yandex_lockbox_secret.tgbot.id
-    version_id           = yandex_lockbox_secret_version.tgbot-latest.id
-    key                  = "YANDEX_OAUTH_CLIENT_ID"
-    environment_variable = "YANDEX_OAUTH_CLIENT_ID"
-  }
-  secrets {
-    id                   = yandex_lockbox_secret.tgbot.id
-    version_id           = yandex_lockbox_secret_version.tgbot-latest.id
-    key                  = "YANDEX_OAUTH_CLIENT_SECRET"
-    environment_variable = "YANDEX_OAUTH_CLIENT_SECRET"
-  }
-  secrets {
-    id                   = yandex_lockbox_secret.tgbot.id
-    version_id           = yandex_lockbox_secret_version.tgbot-latest.id
-    key                  = "PRIVILEGED_USER_LOGIN"
-    environment_variable = "PRIVILEGED_USER_LOGIN"
+    DEV_MODE                   = "False"
+    ASSETS_PATH                = "//function/storage/assets"
+    SQLITE_PATH                = "//function/storage/assets/${local.sqlite_filename}"
+    BOT_TOKEN                  = trimspace(var.BOT_TOKEN)
+    TELEGRAM_SECRET_TOKEN      = trimspace(var.TELEGRAM_SECRET_TOKEN)
+    YANDEX_OAUTH_CLIENT_ID     = trimspace(var.YANDEX_OAUTH_CLIENT_ID)
+    YANDEX_OAUTH_CLIENT_SECRET = trimspace(var.YANDEX_OAUTH_CLIENT_SECRET)
+    PRIVILEGED_USER_LOGIN      = trimspace(var.PRIVILEGED_USER_LOGIN)
   }
   mounts {
     name = "assets"
