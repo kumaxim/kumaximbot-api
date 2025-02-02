@@ -80,7 +80,7 @@ output "telegram-webhook" {
 }
 
 resource "yandex_iam_service_account_static_access_key" "sa-keys" {
-  service_account_id = var.SERVICE_ACCOUNT_ID
+  service_account_id = trimspace(var.SERVICE_ACCOUNT_ID)
   description        = "static access key for object storage"
 }
 
@@ -123,7 +123,7 @@ resource "yandex_function" "handler" {
   entrypoint         = "app.main.handler"
   memory             = "256"
   execution_timeout  = "180"
-  service_account_id = var.SERVICE_ACCOUNT_ID
+  service_account_id = trimspace(var.SERVICE_ACCOUNT_ID)
   content {
     zip_filename = data.archive_file.dist.output_path
   }
@@ -150,15 +150,15 @@ resource "yandex_api_gateway" "gw" {
   name = local.project_slug
   spec = templatefile("${path.module}/gw-spec.yaml", {
     function_id : yandex_function.handler.id
-    service_account_id : var.SERVICE_ACCOUNT_ID
+    service_account_id : trimspace(var.SERVICE_ACCOUNT_ID)
   })
 }
 
 data "http" "setup-tg-webhook" {
-  url    = "https://api.telegram.org/bot${var.BOT_TOKEN}/setWebhook"
+  url    = "https://api.telegram.org/bot${trimspace(var.BOT_TOKEN)}/setWebhook"
   method = "POST"
   request_headers = {
     Content-Type : "application/x-www-form-urlencoded"
   }
-  request_body = "url=https://${yandex_api_gateway.gw.domain}/telegram/webhook&drop_pending_updates=True&secret_token=${var.TELEGRAM_SECRET_TOKEN}"
+  request_body = "url=https://${yandex_api_gateway.gw.domain}/telegram/webhook&drop_pending_updates=True&secret_token=${trimspace(var.TELEGRAM_SECRET_TOKEN)}"
 }
